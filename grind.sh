@@ -18,7 +18,8 @@ fi
 set -o nounset
 set -o errtrace
 #set -o pipefail
-IFS=$'\n\t'
+IFS=$'\n'
+shopt -o globstar
 
 # End Section 1.
 #-----------------------------------
