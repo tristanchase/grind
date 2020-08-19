@@ -15,8 +15,8 @@ fi
 
 # Same as set -euE -o pipefail
 #set -o errexit
-set -o nounset
-set -o errtrace
+#set -o nounset
+#set -o errtrace
 #set -o pipefail
 IFS=$'\n'
 #shopt -o globstar
@@ -26,7 +26,7 @@ IFS=$'\n'
 #-----------------------------------
 # Section 2.
 
-#//Usage: grind [ {-d|--debug} ] [ {-h|--help} | <options>] [<arguments>]
+#//Usage: grind [ {-d|--debug} ] {-h|--help} | <file>
 #//Description: Grinds through your filesystem to find files and open them
 #//Examples: grind foo; grind --debug bar
 #//Options:
@@ -37,9 +37,7 @@ IFS=$'\n'
 # Tristan M. Chase <tristan.m.chase@gmail.com>
 
 # Depends on:
-#  list
-#  of
-#  dependencies
+#  rifle
 
 # End Section 2.
 #-----------------------------------
@@ -107,7 +105,7 @@ function __cleanup() {
 # Main Script Wrapper
 
 if [[ "${BASH_SOURCE[0]}" = "${0}" ]]; then
-	trap __traperr ERR
+	#trap __traperr ERR
 	trap __ctrl_c INT
 	trap __cleanup EXIT
 
@@ -120,13 +118,31 @@ expr "$*" : ".*-h\|--help" > /dev/null && __usage
 #-----------------------------------
 # Main Script goes here
 
+if [[ -z "${1}" ]]; then
+	__usage
+fi
+
 files=( $(find / -iname *$1* 2>/dev/null | grep -Ev '.cache|~$' | grep "$1" ) )
+if [[ -z "${files}" ]]; then
+	printf '%b\n' "\"${1}\" not found."
+	exit 1
+fi
 
 count="$(printf '%b\n' "${files[@]}" | wc -l)"
 if [[ $count -gt 1 ]]; then
-	printf '%b\n' "${files[@]}" | sed = | sed 'N;s/\n/ /'
-	printf "Choose file to open (enter number): "
-	read number # handle incorrect input here
+	printf '%b\n' "${files[@]}" | sed = | sed 'N;s/\n/ /' | more
+	printf "Choose file to open (enter number 1-"${count}", anything else quits): "
+	read number
+	case "${number}" in
+		''|*[!0-9]*) # not a number
+			exit 0
+			;;
+		*) # not in range
+			if [[ "${number}" -lt 1 ]] || [[ "${number}" -gt "${count}" ]]; then
+				exit 0
+			fi
+			;;
+	esac
 	rifle "$(printf '%b\n' "${files[@]:$number-1:1}")"
 else
 	rifle "$(printf '%b\n' "${files}")"
