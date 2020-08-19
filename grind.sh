@@ -19,7 +19,7 @@ set -o nounset
 set -o errtrace
 #set -o pipefail
 IFS=$'\n'
-shopt -o globstar
+#shopt -o globstar
 
 # End Section 1.
 #-----------------------------------
@@ -120,7 +120,7 @@ expr "$*" : ".*-h\|--help" > /dev/null && __usage
 #-----------------------------------
 # Main Script goes here
 
-files=( $(find / -iname *$1* 2>/dev/null | grep "$1" | grep -Ev '~$') )
+files=( $(find / -iname *$1* 2>/dev/null | grep -Ev '.cache|~$' | grep "$1" ) )
 
 count="$(printf '%b\n' "${files[@]}" | wc -l)"
 if [[ $count -gt 1 ]]; then
