@@ -37,7 +37,7 @@ IFS=$'\n'
 # Tristan M. Chase <tristan.m.chase@gmail.com>
 
 # Depends on:
-#  rifle
+#  rifle (comes with ranger)
 
 # End Section 2.
 #-----------------------------------
@@ -118,34 +118,38 @@ expr "$*" : ".*-h\|--help" > /dev/null && __usage
 #-----------------------------------
 # Main Script goes here
 
+# If <arg> is empty, print help
 if [[ -z "${1}" ]]; then
 	__usage
 fi
 
-files=( $(find / -iname *$1* 2>/dev/null | grep -Ev '.cache|~$' | grep "$1" ) )
-if [[ -z "${files}" ]]; then
+# Generate a list of files matching <arg>, but don't include the items in the "grep -Ev" statement below
+_files=( $(find / -type f -iname "*${1}*" 2>/dev/null | grep -Ev '/mnt|/proc|/sbin|/snap|/sys|/usr(/local)?/[s]bin|/var/cache|"${HOME}"/.cache|~$|.swp' | grep "${1}" ) )
+if [[ -z "${_files}" ]]; then
 	printf '%b\n' "\"${1}\" not found."
 	exit 1
 fi
 
-count="$(printf '%b\n' "${files[@]}" | wc -l)"
-if [[ $count -gt 1 ]]; then
-	printf '%b\n' "${files[@]}" | sed = | sed 'N;s/\n/ /' | more
-	printf "Choose file to open (enter number 1-"${count}", anything else quits): "
-	read number
-	case "${number}" in
+# If there is more than one file, generate an numbered list and allow user to choose by number
+_count="$(printf '%b\n' "${_files[@]}" | wc -l)"
+if [[ $_count -gt 1 ]]; then
+	printf '%b\n' "${_files[@]}" | sed = | sed 'N;s/\n/ /' | more
+	printf "Choose file to open (enter number 1-"${_count}", anything else quits): "
+	read _number
+	case "${_number}" in
 		''|*[!0-9]*) # not a number
 			exit 0
 			;;
 		*) # not in range
-			if [[ "${number}" -lt 1 ]] || [[ "${number}" -gt "${count}" ]]; then
+			if [[ "${_number}" -lt 1 ]] || [[ "${_number}" -gt "${_count}" ]]; then
 				exit 0
 			fi
 			;;
 	esac
-	rifle "$(printf '%b\n' "${files[@]:$number-1:1}")"
+	# "rifle" attempts to open the file with the best-suited program
+	rifle "$(printf '%b\n' "${_files[@]:$_number-1:1}")"
 else
-	rifle "$(printf '%b\n' "${files}")"
+	rifle "$(printf '%b\n' "${_files}")"
 fi
 
 # End Section 3.
