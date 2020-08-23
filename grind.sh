@@ -124,7 +124,7 @@ if [[ -z "${1}" ]]; then
 fi
 
 # Generate a list of files matching <arg>, but don't include the items in the "grep -Ev" statement below
-_files=( $(find / -type f -iname "*${1}*" 2>/dev/null | grep -Ev '/mnt|/proc|/sbin|/snap|/sys|/usr(/local)?/[s]bin|/var/cache|"${HOME}"/.cache|~$|.swp' | grep "${1}" ) )
+_files=( $(find / -type f -iname "*${1}*" 2>/dev/null | grep -Ev '/mnt|/proc|/sbin|/snap|/sys|/usr(/local)?/[s]bin|/var/cache|.cache|~$|.swp' | grep "${1}" | sort) )
 if [[ -z "${_files}" ]]; then
 	printf '%b\n' "\"${1}\" not found."
 	exit 1
