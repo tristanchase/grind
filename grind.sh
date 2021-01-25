@@ -6,7 +6,7 @@
 if [[ "${1:-}" =~ (-d|--debug) ]]; then
 	set -o verbose
 	set -o xtrace
-	_debug_file=""${HOME}"/script-logs/$(basename "${0}")/$(basename "${0}")-debug-$(date -Iseconds)"
+	_debug_file="${HOME}/script-logs/$(basename "${0}")/$(basename "${0}")-debug-$(date -Iseconds)"
 	mkdir -p $(dirname ${_debug_file})
         touch ${_debug_file}
 	exec > >(tee "${_debug_file:-}") 2>&1
@@ -46,7 +46,7 @@ IFS=$'\n'
 
 # Low-tech logging function
 
-readonly LOG_FILE=""${HOME}"/script-logs/$(basename "${0}")/$(basename "${0}").log"
+readonly LOG_FILE="${HOME}/script-logs/$(basename "${0}")/$(basename "${0}").log"
 mkdir -p $(dirname ${LOG_FILE})
 function __info()    { echo "$(date -Iseconds) [INFO]    $*" | tee -a "${LOG_FILE}" >&2 ; }
 function __warning() { echo "$(date -Iseconds) [WARNING] $*" | tee -a "${LOG_FILE}" >&2 ; }
