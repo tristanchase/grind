@@ -142,16 +142,16 @@ fi
 if [[ $_count -gt 1 ]]; then
 	for _key in "${_array_keys[@]}"; do
 		__message__
-	done
+	done | more
 	printf "Choose file to open (enter number 1-"${_count}", anything else quits): "
 	read _number
 	case "${_number}" in
 		''|*[!0-9]*) # not a number
-			return 0
+			exit 0
 			;;
 		*) # not in range
 			if [[ "${_number}" -lt 1 ]] || [[ "${_number}" -gt "${_count}" ]]; then
-				return 0
+				exit 0
 			fi
 			;;
 	esac
