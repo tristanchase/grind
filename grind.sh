@@ -124,33 +124,40 @@ if [[ -z "${1}" ]]; then
 fi
 
 # Generate a list of files matching <arg>, but don't include the items in the "grep -Ev" statement below
-# TODO create a file in ~/.cache/grind/ or something and run a cron job to update it?
-_files=( $(find / -type f -iname "*${1}*" 2>/dev/null | grep -Ev '/mnt|/proc|/sbin|/snap|/sys|/usr(/local)?/[s]bin|/var/cache|.cache|~$|.swp' | grep "${1}" | sort) )
-if [[ -z "${_files}" ]]; then
-	printf '%b\n' "\"${1}\" not found."
+_chooser_array=( $(find / -type f -iname "*${1}*" 2>/dev/null | grep -Ev '/mnt|/proc|/sbin|/snap|/sys|/usr(/local)?/[s]bin|/var/cache|.cache|~$|.swp' | grep "${1}" | sort) )
+
+# If there is more than one file, generate an numbered list and allow user to choose by number
+_count="${#_chooser_array[@]}"
+_array_keys=(${!_chooser_array[@]})
+function __message__ {
+	printf "%q %q\n" $((_key + 1)) "${_chooser_array[$_key]}"
+}
+_command="rifle"
+
+if [[ -z "${_chooser_array}" ]]; then
+	printf "%b\n" "\"${1}\" not found."
 	exit 1
 fi
 
-# If there is more than one file, generate an numbered list and allow user to choose by number
-_count="$(printf '%b\n' "${_files[@]}" | wc -l)"
 if [[ $_count -gt 1 ]]; then
-	printf '%b\n' "${_files[@]}" | sed = | sed 'N;s/\n/ /' | more
+	for _key in "${_array_keys[@]}"; do
+		__message__
+	done
 	printf "Choose file to open (enter number 1-"${_count}", anything else quits): "
 	read _number
 	case "${_number}" in
 		''|*[!0-9]*) # not a number
-			exit 0
+			return 0
 			;;
 		*) # not in range
 			if [[ "${_number}" -lt 1 ]] || [[ "${_number}" -gt "${_count}" ]]; then
-				exit 0
+				return 0
 			fi
 			;;
 	esac
-	# "rifle" attempts to open the file with the best-suited program
-	rifle "$(printf '%b\n' "${_files[@]:$_number-1:1}")"
+	"${_command}" "$(printf "%b\n" "${_chooser_array[@]:$_number-1:1}")"
 else
-	rifle "$(printf '%b\n' "${_files}")"
+	"${_command}" "$(printf "%b\n" "${_chooser_array}")"
 fi
 
 # End Section 3.
