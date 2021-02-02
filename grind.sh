@@ -127,37 +127,37 @@ fi
 _chooser_array=( $(find / -type f -iname "*${1}*" 2>/dev/null | grep -Ev '/mnt|/proc|/sbin|/snap|/sys|/usr(/local)?/[s]bin|/var/cache|.cache|~$|.swp' | grep "${1}" | sort) )
 
 # If there is more than one file, generate an numbered list and allow user to choose by number
-_count="${#_chooser_array[@]}"
-_array_keys=(${!_chooser_array[@]})
-function __message__ {
+_chooser_count="${#_chooser_array[@]}"
+_chooser_array_keys=(${!_chooser_array[@]})
+function __chooser_message__ {
 	printf "%q %q\n" $((_key + 1)) "${_chooser_array[$_key]}"
 }
-_command="rifle"
+_chooser_command="rifle"
 
 if [[ -z "${_chooser_array}" ]]; then
 	printf "%b\n" "\"${1}\" not found."
 	exit 1
 fi
 
-if [[ $_count -gt 1 ]]; then
-	for _key in "${_array_keys[@]}"; do
-		__message__
+if [[ $_chooser_count -gt 1 ]]; then
+	for _key in "${_chooser_array_keys[@]}"; do
+		__chooser_message__
 	done | more
-	printf "Choose file to open (enter number 1-"${_count}", anything else quits): "
-	read _number
-	case "${_number}" in
+	printf "Choose file to open (enter number 1-"${_chooser_count}", anything else quits): "
+	read _chooser_number
+	case "${_chooser_number}" in
 		''|*[!0-9]*) # not a number
 			exit 0
 			;;
 		*) # not in range
-			if [[ "${_number}" -lt 1 ]] || [[ "${_number}" -gt "${_count}" ]]; then
+			if [[ "${_chooser_number}" -lt 1 ]] || [[ "${_chooser_number}" -gt "${_chooser_count}" ]]; then
 				exit 0
 			fi
 			;;
 	esac
-	"${_command}" "$(printf "%b\n" "${_chooser_array[@]:$_number-1:1}")"
+	"${_chooser_command}" "$(printf "%b\n" "${_chooser_array[@]:$_chooser_number-1:1}")"
 else
-	"${_command}" "$(printf "%b\n" "${_chooser_array}")"
+	"${_chooser_command}" "$(printf "%b\n" "${_chooser_array}")"
 fi
 
 # End Section 3.
