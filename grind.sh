@@ -1,130 +1,72 @@
 #!/usr/bin/env bash
+
 #-----------------------------------
-# Section 1.
+# Usage Section
 
-# Low-tech debug mode
-if [[ "${1:-}" =~ (-d|--debug) ]]; then
-	set -o verbose
-	set -o xtrace
-	_debug_file="${HOME}/script-logs/$(basename "${0}")/$(basename "${0}")-debug-$(date -Iseconds)"
-	mkdir -p $(dirname ${_debug_file})
-        touch ${_debug_file}
-	exec > >(tee "${_debug_file:-}") 2>&1
-	shift
-fi
-
-# Same as set -euE -o pipefail
-#set -o errexit
-#set -o nounset
-#set -o errtrace
-#set -o pipefail
-IFS=$'\n'
-#shopt -o globstar
-
-# End Section 1.
-#-----------------------------------
-#-----------------------------------
-# Section 2.
-
+#<usage>
 #//Usage: grind [ {-d|--debug} ] {-h|--help} | <file>
 #//Description: Grinds through your filesystem to find files and open them
 #//Examples: grind foo; grind --debug bar
 #//Options:
 #//	-d --debug	Enable debug mode
 #//	-h --help	Display this help message
+#</usage>
 
+#<created>
 # Created: 2020-08-18T21:56:42-04:00
 # Tristan M. Chase <tristan.m.chase@gmail.com>
+#</created>
 
+#<depends>
 # Depends on:
 #  rifle (comes with ranger)
-
-# End Section 2.
-#-----------------------------------
-#-----------------------------------
-# Section 3.
-
-# Low-tech logging function
-
-readonly LOG_FILE="${HOME}/script-logs/$(basename "${0}")/$(basename "${0}").log"
-mkdir -p $(dirname ${LOG_FILE})
-function __info()    { echo "$(date -Iseconds) [INFO]    $*" | tee -a "${LOG_FILE}" >&2 ; }
-function __warning() { echo "$(date -Iseconds) [WARNING] $*" | tee -a "${LOG_FILE}" >&2 ; }
-function __error()   { echo "$(date -Iseconds) [ERROR]   $*" | tee -a "${LOG_FILE}" >&2 ; }
-function __fatal()   { echo "$(date -Iseconds) [FATAL]   $*" | tee -a "${LOG_FILE}" >&2 ; exit 1 ; }
+#</depends>
 
 #-----------------------------------
-# Trap functions
+# TODO Section
 
-function __traperr() {
-	__error "${FUNCNAME[1]}: ${BASH_COMMAND}: $?: ${BASH_SOURCE[1]}.$$ at line ${BASH_LINENO[0]}"
-}
+#<todo>
+# TODO
 
-function __ctrl_c(){
-	exit 130
-}
+# DONE
+# + Insert script
+# + Clean up stray ;'s
+# + Modify command substitution to "$(this_style)"
+# + Rename function_name() to function __function_name__ /\w+\(\)
+# + Rename $variables to "${_variables}" /\$\w+/s+1 @v vEl,{n
+# + Check that _variable="variable definition" (make sure it's in quotes)
+# + Update usage, description, and options section
+# + Update dependencies section
 
-function __cleanup() {
-	case "$?" in
-		0) # exit 0; success!
-			#do nothing
-			;;
-		1) # exit 1; General error
-			#do nothing
-			;;
-		2) # exit 2; Missing keyword or command, or permission problem
-			__fatal "$(basename "${0}"): missing keyword or command, or permission problem."
-			;;
-		126) # exit 126; Cannot execute command (permission denied or not executable)
-			#do nothing
-			;;
-		127) # exit 127; Command not found (problem with $PATH or typo)
-			#do nothing
-			;;
-		128) # exit 128; Invalid argument to exit (integers from 0 - 255)
-			#do nothing
-			;;
-		130) # exit 130; user termination
-			__fatal ""$(basename $0).$$": script terminated by user."
-			;;
-		255) # exit 255; Exit status out of range (e.g. exit -1)
-			#do nothing
-			;;
-		*) # any other exit number; indicates an error in the script
-			#clean up stray files
-			#__fatal ""$(basename $0).$$": [error message here]"
-			;;
-	esac
-
-	if [[ -n "${_debug_file:-}" ]]; then
-		echo "Debug file is: "${_debug_file:-}""
-	fi
-}
+#</todo>
 
 #-----------------------------------
-# Main Script Wrapper
+# License Section
 
-if [[ "${BASH_SOURCE[0]}" = "${0}" ]]; then
-	#trap __traperr ERR
-	trap __ctrl_c INT
-	trap __cleanup EXIT
-
-#-----------------------------------
-# Low-tech help option
-
-function __usage() { grep '^#//' "${0}" | cut -c4- ; exit 0 ; }
-expr "$*" : ".*-h\|--help" > /dev/null && __usage
+#<license>
+# Put license here
+#</license>
 
 #-----------------------------------
-# Main Script goes here
+# Runtime Section
+
+#<main>
+# Initialize variables
+#_temp="file.$$"
+
+# List of temp files to clean up on exit (put last)
+#_tempfiles=("${_temp}")
+
+# Put main script here
+function __main_script__ {
 
 # If <arg> is empty, print help
-if [[ -z "${1}" ]]; then
-	__usage
+if [[ -z "${_arg}" ]]; then
+	__usage__
 fi
 
 # Generate a list of files matching <arg>, but don't include the items in the "grep -Ev" statement below
-_chooser_array=( $(find / -type f -iname "*${1}*" 2>/dev/null | grep -Ev '/mnt|/proc|/sbin|/snap|/sys|/usr(/local)?/[s]bin|/var/cache|.cache|~$|.swp' | grep "${1}" | sort) )
+_chooser_array=( $(find / -type f -iname "*${_arg}*" 2>/dev/null | grep -Ev '/mnt|/proc|/sbin|/snap|/sys|/usr(/local)?/[s]bin|/var/cache|.cache|~$|.swp' | grep "${_arg}" | sort) )
 
 # If there is more than one file, generate an numbered list and allow user to choose by number
 _chooser_count="${#_chooser_array[@]}"
@@ -135,11 +77,11 @@ function __chooser_message__ {
 _chooser_command="rifle"
 
 if [[ -z "${_chooser_array}" ]]; then
-	printf "%b\n" "\"${1}\" not found."
+	printf "%b\n" "\"${_arg}\" not found."
 	exit 1
 fi
 
-if [[ $_chooser_count -gt 1 ]]; then
+if [[ "${_chooser_count}" -gt 1 ]]; then
 	for _key in "${_chooser_array_keys[@]}"; do
 		__chooser_message__
 	done | more
@@ -158,41 +100,69 @@ if [[ $_chooser_count -gt 1 ]]; then
 	"${_chooser_command}" "$(printf "%b\n" "${_chooser_array[@]:$_chooser_number-1:1}")"
 else
 	"${_chooser_command}" "$(printf "%b\n" "${_chooser_array}")"
+			fi
+
+
+
+		} #end __main_script__
+#</main>
+
+#-----------------------------------
+# Local functions
+
+#<functions>
+function __local_cleanup__ {
+	:
+}
+#</functions>
+
+#-----------------------------------
+# Source helper functions
+for _helper_file in functions colors git-prompt; do
+	if [[ ! -e ${HOME}/."${_helper_file}".sh ]]; then
+		printf "%b\n" "Downloading missing script file "${_helper_file}".sh..."
+		sleep 1
+		wget -nv -P ${HOME} https://raw.githubusercontent.com/tristanchase/dotfiles/master/"${_helper_file}".sh
+		mv ${HOME}/"${_helper_file}".sh ${HOME}/."${_helper_file}".sh
+	fi
+done
+
+source ${HOME}/.functions.sh
+
+#-----------------------------------
+# Get some basic options
+# TODO Make this more robust
+#<options>
+if [[ "${1:-}" =~ (-d|--debug) ]]; then
+	__debugger__
+elif [[ "${1:-}" =~ (-h|--help) ]]; then
+	__usage__
+else
+	_arg="${1:-}"
 fi
+#</options>
 
-# End Section 3.
 #-----------------------------------
-#-----------------------------------
-# Section 4.
+# Bash settings
+# Same as set -euE -o pipefail
+#<settings>
+#set -o errexit
+#set -o nounset
+#set -o errtrace
+#set -o pipefail
+IFS=$'\n\t'
+#</settings>
 
-# Main Script ends here
 #-----------------------------------
+# Main Script Wrapper
+if [[ "${BASH_SOURCE[0]}" = "${0}" ]]; then
+	trap __traperr__ ERR
+	trap __ctrl_c__ INT
+	trap __cleanup__ EXIT
+
+	__main_script__
+
 
 fi
-
-# End of Main Script Wrapper
-#-----------------------------------
 
 exit 0
-
-# End Section 4.
-#-----------------------------------
-#-----------------------------------
-# Section 5.
-
-# TODO (bottom up)
-#
-# * Update dependencies section
-# * Update usage, description, and options section
-# * Update __cleanup(); add debug lines (copy from ~/devel/new-script/boilerplate-3.sh)
-# * Update first section with new debug section (copy from ~/devel/new-script/boilerplate-1.sh)
-# * Enhance __traperr() (copy from ~/devel/new-script/boilerplate-3.sh)
-# * Check that _variable="variable definition" (make sure it's in quotes)
-# * Rename $variables to ${_variables} /\$\w+/s+1 @v (vEl,{n)
-# * Rename function_name() to function __function_name() /\w+\(\)
-# * Modify command substitution to "$(this_style)"
-# * Clean up stray ;'s
-# * Insert script
-
-# End Section 5.
-#-----------------------------------
