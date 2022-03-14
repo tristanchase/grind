@@ -66,7 +66,7 @@ if [[ -z "${_arg}" ]]; then
 fi
 
 # Generate a list of files matching <arg>, but don't include the items in the "grep -Ev" statement below
-_chooser_array=( $(find / -type f -iname "*${_arg}*" 2>/dev/null | grep -Ev '/mnt|/proc|/sbin|/snap|/sys|/usr(/local)?/[s]bin|/var/cache|.cache|~$|.swp' | grep "${_arg}" | sort) )
+_chooser_array=( $(find / -type f -iname "*${_arg}*" 2>/dev/null | grep -Ev '/mnt|/proc|/sbin|/snap|/sys|/usr(/local)?/[s]bin|/var/cache|$HOME/(.cache|Dropbox|Music|Pictures|Videos|Wallpapers)?|~$|.swp' | grep "${_arg}" | sort) )
 
 # If there is more than one file, generate an numbered list and allow user to choose by number
 _chooser_count="${#_chooser_array[@]}"
