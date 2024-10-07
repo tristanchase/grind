@@ -27,6 +27,12 @@
 
 #<todo>
 # TODO
+# 1. Rewrite __main_script__
+# 	Look to super-grep for good example
+# 2. Refactor chooser section into a function
+# 	Look to gen-keys for inspiriation
+# 3. Create better way to exclude directories from being searched in $_chooser_array
+# 	Maybe a list in a config file
 
 # DONE
 # + Insert script
@@ -84,7 +90,7 @@ fi
 if [[ "${_chooser_count}" -gt 1 ]]; then
 	for _key in "${_chooser_array_keys[@]}"; do
 		__chooser_message__
-	done | more
+	done | more -e
 	printf "Choose file to open (enter number 1-"${_chooser_count}", anything else quits): "
 	read _chooser_number
 	case "${_chooser_number}" in
